@@ -28,8 +28,8 @@ class spsc_queue final
     }
 
     //can implement move and copy assignment but delete for now
-    CircularBuffer& operator=(const CircularBuffer&) = delete;
-    CircularBuffer& operator=(CircularBuffer&&) = delete;
+    spsc& operator=(const spsc&) = delete;
+    spsc& operator=(spsc&&) = delete;
 
 
     //is constructible
@@ -38,6 +38,7 @@ class spsc_queue final
     T& emplace (Args&&... args)
     {
       const auto& index = writer_.load(std::memory_order_relaxed);
+
       writer_.store ((index + 1) % capacity, std::memory_order_relaxed);
 
       return *new (slots_ + index)
@@ -48,8 +49,6 @@ class spsc_queue final
     T& write (const T& item)
     {
       const auto& index = writer_.load (std::memory_order_relaxed);
-
-      if (index == capacity) {}
 
       slots_[index] = item;
       writer_.store ((index + 1) % capacity, std::memory_order_relaxed);
